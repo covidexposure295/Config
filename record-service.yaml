@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: record-service
+  labels:
+    app: record-service # Usually same as the svc-name
+spec:
+  ports:
+  # The port that service ip exposes
+  # If not specified, the property targetPort = port
+  # `targetPort` is the port that the container exposes
+  - port: 8080
+    name: http
+  # `slector` chooses the pods (NOT DEPLOYMENT!!) tagged as `app=app-name`
+  selector:
+    app: record
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: record-deployment
+  labels:
+    # Tag the deployment `version=v1`
+    app: record
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: record
+  template:
+    metadata:
+      # Our annotation used for istio, you may don't need it
+      labels:
+        # Tag the pods `app=app-name` and `version=v1`
+        app: record
+    spec:
+      containers:
+      - name: record # Usually same as the deploy-name
+        image: macoredroid/record:0.1.9
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
